@@ -27,7 +27,7 @@ async function run() {
         // Connect the client to the server	(optional starting in v4.7)
         // await client.connect();
 
-        const productsCollection = client.db("shoesDB").collection("products");
+        const productsCollection = client.db("shoesDB").collection("allProducts");
 
         app.get('/products', async (req, res) => {
             const result = await productsCollection.find().toArray()
@@ -40,13 +40,33 @@ async function run() {
             const size = parseInt(req.query.size)
             const page = parseInt(req.query.page) - 1
             console.log(size, page);
+            const filter = req.query.filter
+            const sort = req.query.sort
+            const search = req.query.search
 
-            const result = await productsCollection.find().skip(page * size).limit(size).toArray()
+            let query = {
+                ProductName: { $regex: search, $options: 'i' },
+              }
+            if (filter) query.Category = filter
+
+            let options = {}
+            if (sort) options = { sort: { Price: sort === 'asc' ? 1 : -1 } }
+
+            // else if (filter) query = { BrandName: filter }
+            const result = await productsCollection.find(query, options).skip(page * size).limit(size).toArray()
             res.send(result);
         })
 
+
         app.get('/productCount', async (req, res) => {
-            const count = await productsCollection.countDocuments()
+            const filter = req.query.filter
+            const search = req.query.search
+            let query = {
+                ProductName: { $regex: search, $options: 'i' },
+              }
+            if (filter) query.Category = filter
+
+            const count = await productsCollection.countDocuments(query)
             res.send({ count })
         })
 
