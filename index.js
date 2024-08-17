@@ -51,7 +51,7 @@ async function run() {
             let options = {}
             if (sort) options = { sort: { Price: sort === 'asc' ? 1 : -1 } }
 
-            // else if (filter) query = { BrandName: filter }
+        
             const result = await productsCollection.find(query, options).skip(page * size).limit(size).toArray()
             res.send(result);
         })
